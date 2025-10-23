@@ -1,10 +1,50 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { Box, Typography, Paper, List, Grid, Card, CardContent, Chip, LinearProgress } from '@mui/material';
-import { TrendingUp, CheckCircle, Warning, PendingActions, Archive } from '@mui/icons-material';
+import { TrendingUp, CheckCircle, Warning, PendingActions } from '@mui/icons-material';
 import IssueCard from '../components/IssueCard';
 import PageHeader from '../components/PageHeader';
 import FiltersPanel from '../components/FiltersPanel';
 import { apiFetch } from '../../lib/api';
+
+const StatCard = ({ title, value, icon, color, gradient }) => (
+  <Card
+    elevation={2}
+    sx={{
+      borderRadius: 3,
+      transition: 'transform 0.3s, box-shadow 0.3s',
+      '&:hover': {
+        transform: 'translateY(-5px)',
+        boxShadow: '0 16px 32px rgba(0,0,0,0.1)',
+      },
+    }}
+  >
+    <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 3 }}>
+      <Box>
+        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontWeight: 600 }}>
+          {title}
+        </Typography>
+        <Typography variant="h4" sx={{ fontWeight: 700, color }}>
+          {value}
+        </Typography>
+      </Box>
+      <Box
+        sx={{
+          width: 56,
+          height: 56,
+          borderRadius: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: gradient,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+          ml: 2,
+        }}
+      >
+        {icon}
+      </Box>
+    </CardContent>
+  </Card>
+);
 
 export default function Dashboard() {
   const [issues, setIssues] = useState([]);
@@ -50,48 +90,8 @@ export default function Dashboard() {
     resolved: filteredIssues.filter(i => i.status === 'resolved').length,
   };
 
-  const StatCard = ({ title, value, icon, color, gradient }) => (
-    <Card
-      elevation={2}
-      sx={{
-        borderRadius: 3,
-        transition: 'transform 0.3s, box-shadow 0.3s',
-        '&:hover': {
-          transform: 'translateY(-5px)',
-          boxShadow: '0 16px 32px rgba(0,0,0,0.1)',
-        },
-      }}
-    >
-      <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 3 }}>
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5, fontWeight: 600 }}>
-            {title}
-          </Typography>
-          <Typography variant="h4" sx={{ fontWeight: 700, color }}>
-            {value}
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            width: 56,
-            height: 56,
-            borderRadius: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: gradient,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-            ml: 2,
-          }}
-        >
-          {icon}
-        </Box>
-      </CardContent>
-    </Card>
-  );
-
   return (
-    <Box sx={{ bgcolor: '#f3f6fb', minHeight: '100vh', pb: 6 }}>
+    <Box sx={{ minHeight: '100vh', pb: 6 }}>
       <PageHeader
         title="Dashboard"
         summary={{
@@ -101,7 +101,7 @@ export default function Dashboard() {
       />
 
       {/* Stats */}
-      <Box sx={{ px: 4, mt: -6 }}>
+      <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, mt: 4 }}>
         <Grid container spacing={3} sx={{ mb: 5 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard

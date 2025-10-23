@@ -179,13 +179,31 @@ export default function IssueCard({ issue }) {
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           border: '1px solid #e5e7eb',
-          borderRadius: 2,
+          borderRadius: 3,
           overflow: 'hidden',
-          transition: 'all 0.3s ease',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          position: 'relative',
+          background: '#ffffff',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 4,
+            height: '100%',
+            background: `linear-gradient(180deg, ${statusInfo.color}, ${statusInfo.color}80)`,
+            transform: 'scaleY(0)',
+            transformOrigin: 'bottom',
+            transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          },
           '&:hover': {
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
-            transform: 'translateY(-2px)',
+            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)',
+            transform: 'translateY(-4px)',
             borderColor: statusInfo.color,
+            '&::before': {
+              transform: 'scaleY(1)',
+              transformOrigin: 'top',
+            },
           },
         }}
       >
@@ -194,11 +212,15 @@ export default function IssueCard({ issue }) {
           <CardMedia
             component="img"
             sx={{
-              width: { xs: '100%', sm: 200 },
+              width: { xs: '100%', sm: 220 },
               height: { xs: 200, sm: 'auto' },
               minHeight: { sm: 200 },
               objectFit: 'cover',
               flexShrink: 0,
+              transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&:hover': {
+                transform: 'scale(1.05)',
+              },
             }}
             image={imageSource}
             alt={issue.title}
@@ -211,7 +233,7 @@ export default function IssueCard({ issue }) {
           // Placeholder for failed images
           <Box
             sx={{
-              width: { xs: '100%', sm: 200 },
+              width: { xs: '100%', sm: 220 },
               height: { xs: 200, sm: 'auto' },
               minHeight: { sm: 200 },
               bgcolor: '#f3f4f6',
@@ -220,6 +242,7 @@ export default function IssueCard({ issue }) {
               justifyContent: 'center',
               color: '#9ca3af',
               flexShrink: 0,
+              background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
             }}
           >
             <Typography variant="body2" color="inherit">
@@ -253,9 +276,15 @@ export default function IssueCard({ issue }) {
                     bgcolor: statusInfo.bg,
                     color: statusInfo.color,
                     fontWeight: 600,
-                    border: `1px solid ${statusInfo.color}30`,
+                    border: `1px solid ${statusInfo.color}40`,
+                    boxShadow: `0 2px 8px ${statusInfo.color}20`,
+                    transition: 'all 0.3s ease',
                     '& .MuiChip-icon': {
                       color: statusInfo.color,
+                    },
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                      boxShadow: `0 4px 12px ${statusInfo.color}30`,
                     },
                   }}
                 />
@@ -297,7 +326,12 @@ export default function IssueCard({ issue }) {
                   fontWeight: 600,
                   bgcolor: priorityInfo.bg,
                   color: priorityInfo.color,
-                  border: `1px solid ${priorityInfo.color}30`,
+                  border: `1px solid ${priorityInfo.color}40`,
+                  transition: 'all 0.3s ease',
+                  '&:hover': {
+                    transform: 'translateY(-1px)',
+                    boxShadow: `0 2px 8px ${priorityInfo.color}25`,
+                  },
                 }}
               />
 
@@ -333,11 +367,16 @@ export default function IssueCard({ issue }) {
                 size="small"
                 sx={{
                   color: isUpvoted ? '#2563eb' : '#9ca3af',
+                  transition: 'all 0.3s ease',
                   '&:hover': {
                     bgcolor: isUpvoted ? '#e6f0ff' : '#f3f4f6',
+                    transform: 'scale(1.1)',
                   },
                   '&:disabled': {
                     color: '#9ca3af',
+                  },
+                  '&:active': {
+                    transform: 'scale(0.95)',
                   },
                 }}
               >

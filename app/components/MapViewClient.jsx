@@ -107,7 +107,7 @@ export default function MapView() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#f3f6fb', minHeight: '100vh' }}>
+    <Box sx={{ minHeight: '100vh' }}>
       <PageHeader
         title="CIVIC MAP"
         summary={{
@@ -116,12 +116,12 @@ export default function MapView() {
         }}
       />
 
-      <Container maxWidth="xl" sx={{ mt: -6, pb: 4 }}>
+      <Container maxWidth="xl" sx={{ mt: 4, pb: 4, px: { xs: 2, sm: 3 } }}>
         <Fade in={!loading}>
           <Paper
             elevation={2}
             sx={{
-              p: 3,
+              p: { xs: 2, sm: 3 },
               mb: 4,
               borderRadius: 3,
               display: 'flex',

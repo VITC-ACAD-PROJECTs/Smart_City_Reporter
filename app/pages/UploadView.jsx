@@ -218,7 +218,7 @@ export default function UploadView() {
   const canProceedStep2 = formData.photo !== null;
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
+    <Box sx={{ minHeight: '100vh' }}>
       <PageHeader
         title="Report Issue"
         summary={{ 
@@ -227,16 +227,15 @@ export default function UploadView() {
         }}
       />
 
-      <Box sx={{ px: 4, mt: -4, pb: 6 }}>
+      <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, mt: 4, pb: 6 }}>
         <Paper 
           elevation={0}
           sx={{ 
-            p: 4, 
+            p: { xs: 2, sm: 3, md: 4 }, 
             maxWidth: 900, 
             mx: 'auto',
-            border: '1px solid #e5e7eb',
-            borderRadius: 3,
-            bgcolor: '#fff'
+            border: (theme) => `1px solid ${theme.palette.mode === 'dark' ? '#334155' : '#e5e7eb'}`,
+            borderRadius: 3
           }}
         >
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>

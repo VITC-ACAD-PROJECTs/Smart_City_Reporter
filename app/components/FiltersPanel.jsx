@@ -1,14 +1,34 @@
 import React from 'react';
 import { Card, CardContent, Box, Stack, Typography, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { FilterList, Sort } from '@mui/icons-material';
 
 export default function FiltersPanel({ statusFilter, priorityFilter, setStatusFilter, setPriorityFilter, sortOrder, setSortOrder }) {
   return (
-    <Card elevation={0} sx={{ mb: 4, border: '1px solid #e5e7eb', borderRadius: 2 }}>
+    <Card 
+      elevation={0} 
+      sx={{ 
+        mb: 4, 
+        border: '1px solid #e5e7eb', 
+        borderRadius: 3,
+        background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+        },
+      }}
+    >
       <CardContent sx={{ p: 3 }}>
-        <Stack direction="row" spacing={3} alignItems="center">
-          <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151', minWidth: 60 }}>
-            Filter by:
-          </Typography>
+        <Stack 
+          direction={{ xs: 'column', md: 'row' }} 
+          spacing={3} 
+          alignItems={{ xs: 'stretch', md: 'center' }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <FilterList sx={{ fontSize: 20, color: '#667eea' }} />
+            <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>
+              Filter by:
+            </Typography>
+          </Box>
 
           <FormControl size="small" sx={{ minWidth: 160 }}>
             <InputLabel>Status</InputLabel>
@@ -39,17 +59,34 @@ export default function FiltersPanel({ statusFilter, priorityFilter, setStatusFi
             </Select>
           </FormControl>
 
-          <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151', minWidth: 60, ml: 4 }}>
-            Sort by:
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: { md: 4 } }}>
+            <Sort sx={{ fontSize: 20, color: '#667eea' }} />
+            <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>
+              Sort by:
+            </Typography>
+          </Box>
 
-          <FormControl size="small" sx={{ minWidth: 160 }}>
+          <FormControl 
+            size="small" 
+            sx={{ 
+              minWidth: 160,
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  borderColor: '#667eea',
+                },
+                '&.Mui-focused': {
+                  borderColor: '#667eea',
+                },
+              },
+            }}
+          >
             <InputLabel>Order</InputLabel>
             <Select
               value={sortOrder}
               label="Order"
               onChange={e => setSortOrder(e.target.value)}
-              sx={{ borderRadius: 1.5, '& .MuiOutlinedInput-notchedOutline': { borderColor: '#e5e7eb' } }}
             >
               <MenuItem value="latest">Latest</MenuItem>
               <MenuItem value="upvotes">Most Upvoted</MenuItem>

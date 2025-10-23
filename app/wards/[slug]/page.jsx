@@ -78,7 +78,7 @@ export default function WardIssues() {
         }}
       />
 
-      <Box sx={{ px: 4, mt: -6 }}>
+      <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, mt: 4 }}>
         <FiltersPanel
           statusFilter={statusFilter}
           priorityFilter={priorityFilter}
@@ -91,7 +91,7 @@ export default function WardIssues() {
         <Paper
           elevation={2}
           sx={{
-            p: 4,
+            p: { xs: 2, sm: 3, md: 4 },
             maxWidth: 1200,
             mx: 'auto',
             borderRadius: 3,

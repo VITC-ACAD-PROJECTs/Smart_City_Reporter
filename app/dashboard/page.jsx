@@ -94,7 +94,7 @@ export default function Dashboard() {
   );
 
   return (
-    <Box sx={{ bgcolor: '#f3f6fb', minHeight: '100vh', pb: 6 }}>
+    <Box sx={{ minHeight: '100vh', pb: 6 }}>
       <PageHeader
         title="Dashboard"
         summary={{
@@ -104,7 +104,7 @@ export default function Dashboard() {
       />
 
       {/* Stats */}
-      <Box sx={{ px: 4, mt: -6 }}>
+      <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, mt: 4 }}>
         <Grid container spacing={3} sx={{ mb: 5 }}>
           <Grid item xs={12} sm={6} md={3}>
             <StatCard

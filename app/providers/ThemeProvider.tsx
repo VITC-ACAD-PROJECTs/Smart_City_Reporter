@@ -1,9 +1,23 @@
 'use client';
 
 import { ThemeProvider as MuiThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { createContext, useContext, useState, useEffect, useMemo } from 'react';
 
-const theme = createTheme({
+type DarkModeContextType = {
+  darkMode: boolean;
+  toggleDarkMode: () => void;
+};
+
+const DarkModeContext = createContext<DarkModeContextType>({
+  darkMode: false,
+  toggleDarkMode: () => {},
+});
+
+export const useDarkMode = () => useContext(DarkModeContext);
+
+const getTheme = (mode: 'light' | 'dark') => createTheme({
   palette: {
+    mode,
     primary: {
       main: '#667eea',
       light: '#8b9cf6',
@@ -36,13 +50,19 @@ const theme = createTheme({
       light: '#60a5fa',
       dark: '#2563eb',
     },
-    background: {
+    background: mode === 'light' ? {
       default: '#f8fafc',
       paper: '#ffffff',
+    } : {
+      default: '#0f172a',
+      paper: '#1e293b',
     },
-    text: {
+    text: mode === 'light' ? {
       primary: '#1f2937',
       secondary: '#6b7280',
+    } : {
+      primary: '#f1f5f9',
+      secondary: '#cbd5e1',
     },
   },
   typography: {
@@ -179,10 +199,38 @@ const theme = createTheme({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [darkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode !== null) {
+      setDarkMode(savedMode === 'true');
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => {
+      const newMode = !prev;
+      localStorage.setItem('darkMode', String(newMode));
+      return newMode;
+    });
+  };
+
+  const theme = useMemo(() => getTheme(darkMode ? 'dark' : 'light'), [darkMode]);
+
+  // Prevent flash of wrong theme
+  if (!mounted) {
+    return null;
+  }
+
   return (
-    <MuiThemeProvider theme={theme}>
-      <CssBaseline />
-      {children}
-    </MuiThemeProvider>
+    <DarkModeContext.Provider value={{ darkMode, toggleDarkMode }}>
+      <MuiThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </MuiThemeProvider>
+    </DarkModeContext.Provider>
   );
 }

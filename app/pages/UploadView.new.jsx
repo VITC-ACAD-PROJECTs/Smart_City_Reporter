@@ -204,11 +204,11 @@ export default function UploadView() {
         />
       </Box>
 
-      <Box sx={{ px: 4, mt: -4, pb: 6 }}>
+      <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, mt: 4, pb: 6 }}>
         <Paper 
           elevation={0}
           sx={{ 
-            p: 4, 
+            p: { xs: 2, sm: 3, md: 4 }, 
             maxWidth: 900, 
             mx: 'auto',
             border: '1px solid #e5e7eb',

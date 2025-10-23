@@ -89,7 +89,7 @@ export default function WardIssues() {
             <Skeleton variant="rectangular" height={80} sx={{ bgcolor: 'rgba(255,255,255,0.1)', borderRadius: 2 }} />
           </Container>
         </Box>
-        <Container maxWidth="lg" sx={{ mt: -4, pb: 6 }}>
+        <Container maxWidth="lg" sx={{ mt: 4, pb: 6, px: { xs: 2, sm: 3 } }}>
           <Stack spacing={3}>
             {[1, 2, 3].map(i => (
               <Skeleton key={i} variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
@@ -132,7 +132,7 @@ export default function WardIssues() {
         }}
       />
 
-      <Container maxWidth="lg" sx={{ mt: -4, pb: 6 }}>
+      <Container maxWidth="lg" sx={{ mt: 4, pb: 6, px: { xs: 2, sm: 3 } }}>
         {/* Stats Cards */}
         <Grid container spacing={2} sx={{ mb: 3 }}>
           <Grid item xs={6} sm={3}>
