@@ -12,12 +12,14 @@ export async function POST(request, { params }) {
   if (authError) return authError;
 
   const { id } = await params;
-  const userId = request.user.id; // Assuming authenticateUser attaches user to request
+  const userId = request.user.id;
+
+  console.log('🔵 Upvote request:', { issueId: id, userId });
 
   try {
     const { db } = await connectToDatabase();
 
-    // First, find the issue and check if user already upvoted
+    // Find the issue
     let issue = null;
     if (ObjectId.isValid(id)) {
       issue = await db.collection('issues').findOne({ _id: new ObjectId(id) });
@@ -27,26 +29,35 @@ export async function POST(request, { params }) {
     }
     
     if (!issue) {
+      console.log('❌ Issue not found:', id);
       return NextResponse.json({ error: 'Issue not found' }, { status: 404 });
     }
 
-    // Initialize upvotedBy array if it doesn't exist
-    const upvotedBy = issue.upvotedBy || [];
-    const alreadyUpvoted = upvotedBy.includes(userId);
+    // Initialize upvotedBy array if it doesn't exist (for old data)
+    const upvotedBy = Array.isArray(issue.upvotedBy) ? issue.upvotedBy : [];
+    const userIdStr = String(userId);
+    const alreadyUpvoted = upvotedBy.some(uid => String(uid) === userIdStr);
+
+    console.log('📊 Before upvote:', { 
+      currentUpvotes: issue.upvotes, 
+      upvotedByCount: upvotedBy.length,
+      alreadyUpvoted,
+      userId: userIdStr
+    });
 
     let update = null;
     if (alreadyUpvoted) {
-      // Remove upvote
+      // Remove upvote (toggle off)
+      console.log('➖ Removing upvote');
       update = { 
-        $inc: { upvotes: -1 }, 
-        $pull: { upvotedBy: userId }, 
+        $pull: { upvotedBy: userId },
         $set: { updatedAt: new Date() } 
       };
     } else {
-      // Add upvote
+      // Add upvote (toggle on)
+      console.log('➕ Adding upvote');
       update = { 
-        $inc: { upvotes: 1 }, 
-        $addToSet: { upvotedBy: userId }, 
+        $addToSet: { upvotedBy: userId },
         $set: { updatedAt: new Date() } 
       };
     }
@@ -61,12 +72,40 @@ export async function POST(request, { params }) {
     const updatedDoc = result?.value || result;
 
     if (!updatedDoc) {
+      console.log('❌ Failed to update issue');
       return NextResponse.json({ error: 'Failed to update issue' }, { status: 500 });
     }
 
-    return NextResponse.json(updatedDoc);
+    // Recalculate upvotes from array length for accuracy
+    const finalUpvotedBy = Array.isArray(updatedDoc.upvotedBy) ? updatedDoc.upvotedBy : [];
+    const actualUpvoteCount = finalUpvotedBy.length;
+
+    // If upvotes count doesn't match array length, fix it
+    if (updatedDoc.upvotes !== actualUpvoteCount) {
+      console.log('⚠️ Upvote count mismatch! Fixing...', {
+        storedCount: updatedDoc.upvotes,
+        actualCount: actualUpvoteCount
+      });
+      
+      await db.collection('issues').updateOne(
+        { _id: issue._id },
+        { $set: { upvotes: actualUpvoteCount } }
+      );
+      
+      updatedDoc.upvotes = actualUpvoteCount;
+    }
+
+    console.log('✅ After upvote:', { 
+      upvotes: updatedDoc.upvotes,
+      upvotedByCount: finalUpvotedBy.length
+    });
+
+    return NextResponse.json({
+      ...updatedDoc,
+      upvotes: actualUpvoteCount // Always return accurate count
+    });
   } catch (error) {
-    console.error('Error upvoting issue:', error);
+    console.error('❌ Error upvoting issue:', error);
     return NextResponse.json({ error: 'Failed to upvote' }, { status: 500 });
   }
 }

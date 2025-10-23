@@ -68,10 +68,16 @@ export default function IssueCard({ issue }) {
   const isInitiallyUpvoted = Boolean(uid && upvotedByArray.some(u => String(u) === String(uid)));
   const [isUpvoted, setIsUpvoted] = useState(isInitiallyUpvoted);
 
+  // Sync upvotes from prop changes
+  useEffect(() => {
+    setUpvotes(issue.upvotes || 0);
+  }, [issue.upvotes]);
+
+  // Sync upvoted state
   useEffect(() => {
     const arr = Array.isArray(issue.upvotedBy) ? issue.upvotedBy : [];
     setIsUpvoted(Boolean(uid && arr.some(u => String(u) === String(uid))));
-  }, [user, issue.upvotedBy]);
+  }, [user, issue.upvotedBy, uid]);
 
   const handleUpvote = async () => {
     if (!user) {

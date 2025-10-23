@@ -88,6 +88,7 @@ export async function POST(request) {
       wardNumber: wardInfo?.wardNumber || null,
       wardName: wardInfo?.wardName || null,
       upvotes: 0,
+      upvotedBy: [],
       priority: priority || 'medium',
       createdAt: now,
       updatedAt: now,
