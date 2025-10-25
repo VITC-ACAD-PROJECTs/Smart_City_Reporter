@@ -31,7 +31,7 @@ import PageHeader from '../components/PageHeader';
 import FiltersPanel from '../components/FiltersPanel';
 import { apiFetch } from '@/lib/api';
 
-const RECENT_ISSUES_PAGE_SIZE = 5;
+const RECENT_ISSUES_PAGE_SIZE = 4;
 
 export default function Dashboard() {
   const theme = useTheme();
