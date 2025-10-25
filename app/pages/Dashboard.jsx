@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Box, Typography, Paper, List, Grid, Card, CardContent, Chip, LinearProgress } from '@mui/material';
+import { Box, Typography, Paper, List, Grid, Card, CardContent, Chip, LinearProgress, useTheme } from '@mui/material';
 import { TrendingUp, CheckCircle, Warning, PendingActions } from '@mui/icons-material';
 import IssueCard from '../components/IssueCard';
 import PageHeader from '../components/PageHeader';
@@ -47,6 +47,11 @@ const StatCard = ({ title, value, icon, color, gradient }) => (
 );
 
 export default function Dashboard() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const pageBackground = isDark
+    ? 'linear-gradient(180deg, #0f172a 0%, #111827 40%, #0f172a 100%)'
+    : 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%)';
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -54,7 +59,7 @@ export default function Dashboard() {
   const [sortOrder, setSortOrder] = useState('latest');
 
   useEffect(() => {
-    apiFetch('/api/issues?limit=10&sort=createdAt:desc')
+    apiFetch('/api/issues?limit=100&sort=createdAt:desc')
       .then(res => res.json())
       .then(data => {
         setIssues(Array.isArray(data.items) ? data.items : Array.isArray(data) ? data : []);
@@ -91,7 +96,7 @@ export default function Dashboard() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', pb: 6 }}>
+    <Box sx={{ minHeight: '100vh', pb: 6, bgcolor: 'transparent', background: pageBackground }}>
       <PageHeader
         title="Dashboard"
         summary={{
@@ -151,15 +156,11 @@ export default function Dashboard() {
         />
 
         {/* Recent Issues */}
-        <Paper
-          elevation={2}
+        <Box
           sx={{
             p: 4,
             maxWidth: 1200,
             mx: 'auto',
-            borderRadius: 3,
-            bgcolor: '#fff',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.05)',
           }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -190,7 +191,7 @@ export default function Dashboard() {
               filteredIssues.map(issue => <IssueCard key={issue._id} issue={issue} />)
             )}
           </List>
-        </Paper>
+        </Box>
       </Box>
     </Box>
   );

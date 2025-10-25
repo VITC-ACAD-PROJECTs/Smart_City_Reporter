@@ -1,5 +1,5 @@
 'use client';
-import { AppBar, Toolbar, Button, Box, Typography, Avatar, IconButton, Menu, MenuItem, useScrollTrigger, Slide, Switch, Tooltip } from '@mui/material';
+import { AppBar, Toolbar, Button, Box, Typography, Avatar, IconButton, Menu, MenuItem, useScrollTrigger, Slide, Tooltip, useTheme } from '@mui/material';
 import { Map, Dashboard as DashboardIcon, AddCircleOutline, Login, Logout, Person, Menu as MenuIcon, LightMode, DarkMode } from '@mui/icons-material';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext.jsx';
@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 function HideOnScroll({ children }) {
-  const trigger = useScrollTrigger();
+  const trigger = useScrollTrigger({ threshold: 10 });
   return (
     <Slide appear={false} direction="down" in={!trigger}>
       {children}
@@ -19,9 +19,11 @@ function HideOnScroll({ children }) {
 export default function Navbar() {
   const { user, login, logout } = useAuth();
   const { darkMode, toggleDarkMode } = useDarkMode();
+  const theme = useTheme();
   const pathname = usePathname();
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const handleUserMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleUserMenuClose = () => setAnchorEl(null);
@@ -29,9 +31,9 @@ export default function Navbar() {
   const handleMobileMenuClose = () => setMobileMenuAnchor(null);
 
   const navItems = [
-    { label: 'Map', href: '/', icon: <Map sx={{ fontSize: 20 }} /> },
-    { label: 'Dashboard', href: '/dashboard', icon: <DashboardIcon sx={{ fontSize: 20 }} /> },
-    { label: 'Report Issue', href: '/upload', icon: <AddCircleOutline sx={{ fontSize: 20 }} />, highlight: true },
+    { label: 'Map', href: '/', icon: <Map sx={{ fontSize: 18 }} /> },
+    { label: 'Dashboard', href: '/dashboard', icon: <DashboardIcon sx={{ fontSize: 18 }} /> },
+    { label: 'Report Issue', href: '/upload', icon: <AddCircleOutline sx={{ fontSize: 18 }} />, highlight: true },
   ];
 
   const isActive = (href) => pathname === href;
@@ -42,46 +44,47 @@ export default function Navbar() {
         position="fixed" 
         elevation={0}
         sx={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+          bgcolor: darkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(12px)',
+          borderBottom: darkMode 
+            ? '1px solid rgba(255, 255, 255, 0.08)' 
+            : '1px solid rgba(0, 0, 0, 0.08)',
+          boxShadow: darkMode 
+            ? '0 4px 24px rgba(0, 0, 0, 0.4)' 
+            : '0 4px 24px rgba(0, 0, 0, 0.06)',
+          transition: 'all 0.3s ease-in-out',
         }}
       >
-        <Toolbar sx={{ justifyContent: 'space-between', minHeight: { xs: 56, sm: 64 } }}>
+        <Toolbar sx={{ justifyContent: 'space-between', minHeight: { xs: 64, sm: 70 }, py: 1 }}>
           {/* Logo Section */}
-          <Link href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Link href="/" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: 12 }}>
             <Box
               sx={{
-                width: 40,
-                height: 40,
-                borderRadius: 2,
-                background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(10px)',
+                width: 44,
+                height: 44,
+                borderRadius: 2.5,
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                transition: 'all 0.3s ease',
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
-                  transform: 'scale(1.05)',
-                  background: 'rgba(255, 255, 255, 0.2)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)',
                 },
               }}
             >
-              <Map sx={{ color: '#fff', fontSize: 22 }} />
+              <Map sx={{ color: '#fff', fontSize: 24 }} />
             </Box>
             <Typography 
               variant="h6" 
               sx={{ 
-                fontWeight: 800,
+                fontWeight: 700,
                 fontSize: '1.25rem',
                 letterSpacing: '-0.5px',
                 display: { xs: 'none', sm: 'block' },
-                background: 'linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                color: darkMode ? '#fff' : '#1f2937',
               }}
             >
               Civic Tracker
@@ -89,7 +92,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, flex: 1, justifyContent: 'center' }}>
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1.5, flex: 1, justifyContent: 'center' }}>
             {navItems.map((item) => (
               <Button
                 key={item.href}
@@ -97,38 +100,45 @@ export default function Navbar() {
                 href={item.href}
                 startIcon={item.icon}
                 sx={{
-                  color: '#fff',
+                  color: isActive(item.href)
+                    ? '#667eea'
+                    : darkMode ? 'rgba(255, 255, 255, 0.9)' : '#4b5563',
                   px: 2.5,
-                  py: 1,
+                  py: 0.75,
                   borderRadius: 2,
                   fontWeight: 600,
-                  fontSize: '0.9rem',
-                  transition: 'all 0.3s ease',
+                  fontSize: '0.875rem',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   position: 'relative',
-                  overflow: 'hidden',
-                  background: isActive(item.href) 
-                    ? 'rgba(255, 255, 255, 0.2)' 
-                    : item.highlight 
-                    ? 'rgba(255, 255, 255, 0.1)' 
+                  background: isActive(item.href)
+                    ? darkMode ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.08)'
+                    : item.highlight
+                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
                     : 'transparent',
-                  border: isActive(item.href) 
-                    ? '1px solid rgba(255, 255, 255, 0.3)' 
-                    : '1px solid transparent',
-                  backdropFilter: isActive(item.href) ? 'blur(10px)' : 'none',
+                  ...(item.highlight && {
+                    color: darkMode ? '#fff' : '#030303ff !important',
+                    boxShadow: '0 3px 18px rgba(102, 126, 234, 0.35)',
+                    border: '1px solid rgba(255, 255, 255, 0.32)',
+                  }),
                   '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    background: isActive(item.href)
+                      ? darkMode ? 'rgba(102, 126, 234, 0.22)' : 'rgba(102, 126, 234, 0.14)'
+                      : item.highlight
+                      ? 'linear-gradient(135deg, #5568d3 0%, #6a3f8a 100%)'
+                      : darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                    transform: item.highlight ? 'translateY(-2px)' : 'none',
+                    boxShadow: item.highlight ? '0 6px 20px rgba(102, 126, 234, 0.4)' : 'none',
                   },
-                  '&::before': item.highlight ? {
+                  '&::after': isActive(item.href) && !item.highlight ? {
                     content: '""',
                     position: 'absolute',
-                    top: 0,
-                    left: '-100%',
-                    width: '100%',
-                    height: '100%',
-                    background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)',
-                    animation: 'shimmer 3s infinite',
+                    bottom: 0,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '60%',
+                    height: '2px',
+                    bgcolor: '#667eea',
+                    borderRadius: '2px 2px 0 0',
                   } : {},
                 }}
               >
@@ -138,20 +148,20 @@ export default function Navbar() {
           </Box>
 
           {/* User Section */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             {/* Dark Mode Toggle */}
-            <Tooltip title={darkMode ? 'Light Mode' : 'Dark Mode'}>
+            <Tooltip title={darkMode ? 'Light Mode' : 'Dark Mode'} arrow>
               <IconButton
                 onClick={toggleDarkMode}
+                size="small"
                 sx={{
-                  color: '#fff',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  transition: 'all 0.3s ease',
+                  color: darkMode ? '#fbbf24' : '#667eea',
+                  bgcolor: darkMode ? 'rgba(251, 191, 36, 0.1)' : 'rgba(102, 126, 234, 0.08)',
+                  border: `1px solid ${darkMode ? 'rgba(251, 191, 36, 0.2)' : 'rgba(102, 126, 234, 0.2)'}`,
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.2)',
-                    transform: 'rotate(180deg)',
+                    bgcolor: darkMode ? 'rgba(251, 191, 36, 0.15)' : 'rgba(102, 126, 234, 0.12)',
+                    transform: 'rotate(180deg) scale(1.05)',
                   },
                 }}
               >
@@ -167,38 +177,38 @@ export default function Navbar() {
                       px: 2,
                       py: 0.75,
                       borderRadius: 2,
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      bgcolor: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(102, 126, 234, 0.08)',
+                      border: `1px solid ${darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(102, 126, 234, 0.2)'}`,
                     }}
                   >
-                    <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600 }}>
+                    <Typography variant="body2" sx={{ color: darkMode ? '#fff' : '#1f2937', fontWeight: 600, fontSize: '0.875rem' }}>
                       {user.email?.split('@')[0] || 'User'}
                     </Typography>
                   </Box>
                   <IconButton
                     onClick={handleUserMenuOpen}
+                    size="small"
                     sx={{
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                      transition: 'all 0.3s ease',
+                      bgcolor: darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(102, 126, 234, 0.08)',
+                      border: `1px solid ${darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(102, 126, 234, 0.2)'}`,
+                      transition: 'all 0.2s ease',
                       '&:hover': {
-                        background: 'rgba(255, 255, 255, 0.25)',
+                        bgcolor: darkMode ? 'rgba(255, 255, 255, 0.12)' : 'rgba(102, 126, 234, 0.12)',
                         transform: 'scale(1.05)',
                       },
                     }}
                   >
-                    <Avatar sx={{ width: 32, height: 32, bgcolor: '#fff', color: '#667eea' }}>
-                      <Person sx={{ fontSize: 20 }} />
+                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: '#fff' }}>
+                      <Person sx={{ fontSize: 18 }} />
                     </Avatar>
                   </IconButton>
                 </Box>
                 <IconButton
-                  sx={{ display: { xs: 'flex', sm: 'none' }, color: '#fff' }}
+                  size="small"
+                  sx={{ display: { xs: 'flex', sm: 'none' } }}
                   onClick={handleUserMenuOpen}
                 >
-                  <Avatar sx={{ width: 32, height: 32, bgcolor: 'rgba(255, 255, 255, 0.2)' }}>
+                  <Avatar sx={{ width: 32, height: 32, bgcolor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
                     <Person sx={{ fontSize: 18 }} />
                   </Avatar>
                 </IconButton>
@@ -223,21 +233,21 @@ export default function Navbar() {
             ) : (
               <Button
                 onClick={login}
-                startIcon={<Login />}
+                startIcon={<Login sx={{ fontSize: 18 }} />}
                 sx={{
                   color: '#fff',
                   px: 2.5,
-                  py: 1,
+                  py: 0.75,
                   borderRadius: 2,
                   fontWeight: 600,
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  transition: 'all 0.3s ease',
+                  fontSize: '0.875rem',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
+                  transition: 'all 0.2s ease',
                   '&:hover': {
-                    background: 'rgba(255, 255, 255, 0.25)',
+                    background: 'linear-gradient(135deg, #5568d3 0%, #6a3f8a 100%)',
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    boxShadow: '0 4px 16px rgba(102, 126, 234, 0.4)',
                   },
                 }}
               >
@@ -247,7 +257,12 @@ export default function Navbar() {
 
             {/* Mobile Menu Button */}
             <IconButton
-              sx={{ display: { xs: 'flex', md: 'none' }, color: '#fff', ml: 1 }}
+              size="small"
+              sx={{ 
+                display: { xs: 'flex', md: 'none' }, 
+                color: darkMode ? '#fff' : '#1f2937',
+                ml: 1 
+              }}
               onClick={handleMobileMenuOpen}
             >
               <MenuIcon />
@@ -262,9 +277,12 @@ export default function Navbar() {
             PaperProps={{
               sx: {
                 mt: 1.5,
-                borderRadius: 2,
-                minWidth: 200,
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
+                borderRadius: 3,
+                minWidth: 220,
+                boxShadow: darkMode 
+                  ? '0 8px 32px rgba(0, 0, 0, 0.6)' 
+                  : '0 8px 32px rgba(0, 0, 0, 0.12)',
+                border: `1px solid ${darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)'}`,
               },
             }}
           >
@@ -277,8 +295,20 @@ export default function Navbar() {
                 sx={{
                   gap: 1.5,
                   py: 1.5,
-                  background: isActive(item.href) ? 'rgba(102, 126, 234, 0.1)' : 'transparent',
-                  fontWeight: isActive(item.href) ? 600 : 400,
+                  mx: 1,
+                  my: 0.5,
+                  borderRadius: 2,
+                  bgcolor: isActive(item.href) 
+                    ? darkMode ? 'rgba(102, 126, 234, 0.15)' : 'rgba(102, 126, 234, 0.08)' 
+                    : 'transparent',
+                  color: isActive(item.href) ? '#667eea' : 'text.primary',
+                  fontWeight: isActive(item.href) ? 600 : 500,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: isActive(item.href)
+                      ? darkMode ? 'rgba(102, 126, 234, 0.2)' : 'rgba(102, 126, 234, 0.12)'
+                      : darkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)',
+                  },
                 }}
               >
                 {item.icon}
@@ -287,18 +317,6 @@ export default function Navbar() {
             ))}
           </Menu>
         </Toolbar>
-
-        {/* Shimmer Animation Keyframes */}
-        <style jsx global>{`
-          @keyframes shimmer {
-            0% {
-              left: -100%;
-            }
-            100% {
-              left: 200%;
-            }
-          }
-        `}</style>
       </AppBar>
     </HideOnScroll>
   );

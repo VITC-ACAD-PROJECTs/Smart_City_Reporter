@@ -1,8 +1,9 @@
+'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { Box, Container, Paper, Typography, Chip, Stack, Fade } from '@mui/material';
+import { Box, Container, Paper, Typography, Chip, Stack, Fade, useTheme } from '@mui/material';
 import { LocationOn, Info } from '@mui/icons-material';
 import PageHeader from '../components/PageHeader';
 import IssueHistoryModal from '../components/IssueHistoryModal';
@@ -43,6 +44,11 @@ const statusLabels = {
 };
 
 export default function MapView() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const pageBackground = isDark
+    ? 'linear-gradient(180deg, #0f172a 0%, #111827 40%, #0f172a 100%)'
+    : 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%)';
   const [geojson, setGeojson] = useState(null);
   const [wardZones, setWardZones] = useState([]);
   const [issues, setIssues] = useState([]);
@@ -122,7 +128,7 @@ export default function MapView() {
   };
 
   return (
-    <Box sx={{ bgcolor: '#f3f6fb', minHeight: '100vh' }}>
+    <Box sx={{ bgcolor: 'transparent', minHeight: '100vh', background: pageBackground }}>
       <PageHeader
         title="CIVIC MAP"
         summary={{
@@ -144,13 +150,13 @@ export default function MapView() {
               flexWrap: 'wrap',
               gap: 1.5,
               alignItems: 'center',
-              bgcolor: '#fff',
-              boxShadow: '0 8px 20px rgba(0,0,0,0.05)'
+              bgcolor: 'background.paper',
+              boxShadow: isDark ? '0 8px 20px rgba(0,0,0,0.3)' : '0 8px 20px rgba(0,0,0,0.05)'
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Info sx={{ fontSize: 18, color: '#6b7280' }} />
-              <Typography variant="body2" sx={{ fontWeight: 600, color: '#374151' }}>Legend:</Typography>
+              <Info sx={{ fontSize: 18, color: 'text.secondary' }} />
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>Legend:</Typography>
             </Box>
             {Object.entries(statusLabels).map(([key, { label, color, bg }]) => (
               <Chip
@@ -181,8 +187,11 @@ export default function MapView() {
           sx={{
             borderRadius: 3,
             overflow: 'hidden',
-            border: '1px solid #e5e7eb',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)'
+            border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : '#e5e7eb'}`,
+            boxShadow: isDark 
+              ? '0 20px 25px -5px rgba(0,0,0,0.4), 0 10px 10px -5px rgba(0,0,0,0.3)' 
+              : '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+            bgcolor: 'background.paper'
           }}
         >
           <MapContainer
@@ -203,7 +212,7 @@ export default function MapView() {
               >
                 <Popup>
                   <Box sx={{ minWidth: 200, fontFamily: 'system-ui' }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: '#1f2937' }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
                       {issue.title}
                     </Typography>
                     <Stack spacing={0.5}>

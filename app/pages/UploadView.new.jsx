@@ -15,7 +15,8 @@ import {
   StepLabel,
   Chip,
   Stack,
-  CircularProgress
+  CircularProgress,
+  useTheme
 } from '@mui/material';
 import { CloudUpload, LocationOn, Send, CheckCircle, Image as ImageIcon } from '@mui/icons-material';
 import PageHeader from '../components/PageHeader';
@@ -60,6 +61,11 @@ function LocationSelector({ position, setPosition }) {
 }
 
 export default function UploadView() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const pageBackground = isDark
+    ? 'linear-gradient(180deg, #0f172a 0%, #111827 40%, #0f172a 100%)'
+    : 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%)';
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -188,7 +194,7 @@ export default function UploadView() {
   const canProceedStep2 = true;
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
+    <Box sx={{ bgcolor: 'transparent', minHeight: '100vh', background: pageBackground }}>
       <Box sx={{ 
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         pt: 4,

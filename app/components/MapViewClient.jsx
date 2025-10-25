@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, Container, Paper, Typography, Chip, Stack, Fade } from '@mui/material';
+import { Box, Container, Paper, Typography, Chip, Stack, Fade, useTheme } from '@mui/material';
 import { LocationOn, Info } from '@mui/icons-material';
 import PageHeader from '@/app/components/PageHeader.jsx';
 import IssueHistoryModal from '@/app/components/IssueHistoryModal';
@@ -13,6 +13,11 @@ import { apiFetch } from '@/lib/api';
 const DynamicMapDisplay = dynamic(() => import('@/app/components/MapDisplay'), { ssr: false });
 
 export default function MapView() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const pageBackground = isDark
+    ? 'linear-gradient(180deg, #0f172a 0%, #111827 40%, #0f172a 100%)'
+    : 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%)';
   const [geojson, setGeojson] = useState(null);
   const [wardZones, setWardZones] = useState([]);
   const [issues, setIssues] = useState([]);
@@ -107,7 +112,7 @@ export default function MapView() {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'transparent', background: pageBackground }}>
       <PageHeader
         title="CIVIC MAP"
         summary={{

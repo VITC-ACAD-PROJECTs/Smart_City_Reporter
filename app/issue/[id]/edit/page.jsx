@@ -1,59 +1,47 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   Box,
   Button,
-  Container,
   Card,
   CardContent,
-  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
   Select,
   TextField,
   Typography,
-  Grid,
+  useTheme,
+  Stack,
+  Chip,
+  Skeleton,
 } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import PageHeader from '../../../components/PageHeader';
 import IssueHistory from '../../../components/IssueHistory';
-
-import 'leaflet/dist/leaflet.css';
-import dynamic from 'next/dynamic';
-
-const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
-const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { ssr: false });
 
 import { useAuth } from '@/context/AuthContext';
 import { apiFetch } from '@/lib/api';
 
 export default function EditIssue() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const pageBackground = isDark
+    ? 'linear-gradient(180deg, #0f172a 0%, #111827 40%, #0f172a 100%)'
+    : 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%)';
   const { id } = useParams();
   const router = useRouter();
   const { user } = useAuth();
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [fetchError, setFetchError] = useState('');
   const [status, setStatus] = useState('');
   const [assignedTo, setAssignedTo] = useState('');
   const [statusChangeReason, setStatusChangeReason] = useState('');
-
-  useEffect(() => {
-    // Fix Leaflet icon paths for Next.js
-    if (typeof window !== 'undefined') {
-      const L = require('leaflet');
-      delete L.Icon.Default.prototype._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
-      });
-    }
-  }, []);
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -78,19 +66,21 @@ export default function EditIssue() {
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message);
+        setFetchError(err.message);
         setLoading(false);
       });
   }, [id, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+
     if (!statusChangeReason) {
-      setError('Status change reason is required.');
+      setFormError('Status change reason is required.');
       return;
     }
     if (statusChangeReason.length < 5) {
-      setError('Status change reason must be at least 5 characters long.');
+      setFormError('Status change reason must be at least 5 characters long.');
       return;
     }
     try {
@@ -109,57 +99,196 @@ export default function EditIssue() {
       }
       router.push('/dashboard');
     } catch (err) {
-      setError(err.message);
+      setFormError(err.message);
     }
   };
 
+  const statusStyles = useMemo(
+    () => ({
+      open: {
+        label: 'Open',
+        color: theme.palette.warning.main,
+        bg: alpha(theme.palette.warning.main, isDark ? 0.25 : 0.14),
+      },
+      in_progress: {
+        label: 'In Progress',
+        color: theme.palette.info.main,
+        bg: alpha(theme.palette.info.main, isDark ? 0.25 : 0.14),
+      },
+      resolved: {
+        label: 'Resolved',
+        color: theme.palette.success.main,
+        bg: alpha(theme.palette.success.main, isDark ? 0.25 : 0.14),
+      },
+    }),
+    [isDark, theme],
+  );
+
+  const statusKey = (status || issue?.status || 'open').toLowerCase();
+  const statusInfo = statusStyles[statusKey] || statusStyles.open;
+
+  function formatValue(value) {
+    if (!value || typeof value !== 'string') return 'Not specified';
+    return value
+      .replace(/[_-]+/g, ' ')
+      .split(' ')
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
+  }
+
+  const priorityChip = useMemo(() => {
+    const key = (issue?.priority || 'medium').toLowerCase();
+    const colorMap = {
+      high: theme.palette.error.main,
+      medium: theme.palette.warning.main,
+      low: theme.palette.success.main,
+    };
+    const color = colorMap[key] || theme.palette.primary.main;
+    return {
+      label: `${formatValue(key)} Priority`,
+      color,
+      bg: alpha(color, isDark ? 0.22 : 0.12),
+    };
+  }, [issue?.priority, isDark, theme]);
+
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-        <CircularProgress />
+      <Box sx={{ minHeight: '100vh', py: 4, bgcolor: 'transparent', background: pageBackground }}>
+        <PageHeader
+          title="Manage Issue"
+          summary={{ titleText: 'Loading issue details', subText: 'Fetching the latest information…' }}
+        />
+        <Box sx={{ px: { xs: 2, sm: 3, md: 5 }, mt: 4, maxWidth: 1280, mx: 'auto', width: '100%' }}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 3, md: 4 }} alignItems="stretch">
+            <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 4,
+                  border: `1px solid ${alpha(theme.palette.primary.main, isDark ? 0.25 : 0.12)}`,
+                  background: isDark
+                    ? 'linear-gradient(140deg, rgba(15, 23, 42, 0.92) 0%, rgba(30, 41, 59, 0.88) 100%)'
+                    : 'linear-gradient(140deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 245, 249, 0.94) 100%)',
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                  <Skeleton variant="text" width="50%" height={32} sx={{ mb: 2 }} />
+                  <Skeleton variant="rectangular" height={280} sx={{ borderRadius: 3 }} />
+                </CardContent>
+              </Card>
+            </Box>
+            <Box sx={{ width: { xs: '100%', md: '50%' } }}>
+              <Card
+                elevation={0}
+                sx={{
+                  borderRadius: 4,
+                  border: `1px solid ${alpha(theme.palette.primary.main, isDark ? 0.25 : 0.12)}`,
+                  background: isDark
+                    ? 'linear-gradient(150deg, rgba(15, 23, 42, 0.94) 0%, rgba(15, 23, 42, 0.86) 100%)'
+                    : 'linear-gradient(150deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.94) 100%)',
+                  backdropFilter: 'blur(12px)',
+                }}
+              >
+                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                  <Skeleton variant="text" width="60%" height={28} sx={{ mb: 2 }} />
+                  <Stack spacing={2.5}>
+                    {Array.from({ length: 4 }).map((_, idx) => (
+                      <Skeleton key={idx} variant="rectangular" height={48} sx={{ borderRadius: 2 }} />
+                    ))}
+                    <Skeleton variant="rectangular" height={56} sx={{ borderRadius: 2 }} />
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Box>
+          </Stack>
+        </Box>
       </Box>
     );
   }
 
-  if (error) {
+  if (fetchError || !issue) {
     return (
-      <Container>
-        <PageHeader title="Error" />
-        <Typography color="error">{error}</Typography>
-      </Container>
+      <Box sx={{ minHeight: '100vh', py: 4, bgcolor: 'transparent', background: pageBackground }}>
+        <PageHeader
+          title="Issue unavailable"
+          summary={{
+            titleText: 'We couldn’t load this issue',
+            subText: fetchError || 'Please try again later or return to the dashboard.',
+          }}
+        />
+        <Box sx={{ px: { xs: 2, sm: 3, md: 5 }, mt: 4, maxWidth: 720, mx: 'auto', width: '100%' }}>
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 4,
+              border: `1px solid ${alpha(theme.palette.error.main, isDark ? 0.3 : 0.18)}`,
+              background: isDark
+                ? 'linear-gradient(150deg, rgba(30, 41, 59, 0.92) 0%, rgba(30, 41, 59, 0.85) 100%)'
+                : 'linear-gradient(150deg, rgba(255, 255, 255, 0.98) 0%, rgba(254, 242, 242, 0.92) 100%)',
+            }}
+          >
+            <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+              <Typography variant="body1" sx={{ mb: 3 }}>
+                {fetchError || 'The requested issue could not be found.'}
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => router.push('/dashboard')}
+                sx={{
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  px: 3,
+                  py: 1.25,
+                  backgroundImage: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  boxShadow: '0 12px 30px rgba(99, 102, 241, 0.28)',
+                }}
+              >
+                Back to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', py: 4 }}>
-      <Container maxWidth="lg">
-        <PageHeader
-          title="Manage Issue"
-          summary={issue ? { titleText: issue.title || 'No Title', subText: `ID: ${issue._id}` } : undefined}
-        />
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            {issue.lat && issue.lng && (
-              <MapContainer center={[issue.lat, issue.lng]} zoom={15} style={{ height: '100%', minHeight: '400px', borderRadius: '8px' }}>
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                <Marker position={[issue.lat, issue.lng]} />
-              </MapContainer>
-            )}
-          </Grid>
-          <Grid item xs={12} md={6}>
+    <Box sx={{ minHeight: '100vh', py: 4, bgcolor: 'transparent', background: pageBackground }}>
+      <PageHeader
+        title="Manage Issue"
+        summary={{
+          titleText: issue.title || 'Manage status updates',
+          subText: issue._id ? `Reference ID • ${issue._id}` : 'Review the latest activity and keep residents informed.',
+        }}
+      />
+        <Box sx={{ px: { xs: 2, sm: 3, md: 5 }, mt: 4, maxWidth: 1280, mx: 'auto', width: '100%' }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 3, lg: 4 }} alignItems="stretch">
+          <Box sx={{ width: { xs: '100%', md: '50%' }, display: 'flex' }}>
             <Card
               elevation={0}
-              sx={{ border: '1px solid #e0e0e0', borderRadius: 2, height: '100%' }}
+              sx={{
+                height: '100%',
+                borderRadius: 4,
+                border: `1px solid ${alpha(theme.palette.primary.main, isDark ? 0.24 : 0.14)}`,
+                background: isDark
+                  ? 'linear-gradient(160deg, rgba(15, 23, 42, 0.94) 0%, rgba(24, 33, 54, 0.88) 100%)'
+                  : 'linear-gradient(160deg, rgba(255, 255, 255, 0.98) 0%, rgba(241, 245, 249, 0.94) 100%)',
+                boxShadow: isDark
+                  ? '0 24px 52px rgba(8, 15, 25, 0.45)'
+                  : '0 24px 52px rgba(15, 23, 42, 0.12)',
+              }}
             >
-              <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>
-                  Update Status
+              <CardContent sx={{ p: { xs: 3, md: 4 }, height: '100%' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  Update status
                 </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  Communicate progress with residents by updating the status and providing a short explanation.
+                </Typography>
+
                 <form onSubmit={handleSubmit}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Stack spacing={2.5}>
                     <FormControl fullWidth>
                       <InputLabel id="status-label">Status</InputLabel>
                       <Select
@@ -173,43 +302,108 @@ export default function EditIssue() {
                         <MenuItem value="resolved">Resolved</MenuItem>
                       </Select>
                     </FormControl>
+
                     <TextField
-                      label="Status Change Reason"
+                      label="Status change reason"
                       value={statusChangeReason}
                       onChange={(e) => setStatusChangeReason(e.target.value)}
                       fullWidth
                       multiline
                       rows={4}
                       required
-                      helperText="Minimum 5 characters required"
+                      helperText="Provide a short explanation (minimum 5 characters)."
                       error={statusChangeReason.length > 0 && statusChangeReason.length < 5}
                     />
+
                     <TextField
-                      label="Assigned To"
+                      label="Assigned to"
                       value={assignedTo}
                       onChange={(e) => setAssignedTo(e.target.value)}
                       fullWidth
                       disabled
                     />
+
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Chip
+                        label={statusInfo.label}
+                        sx={{
+                          borderRadius: '999px',
+                          fontWeight: 600,
+                          color: statusInfo.color,
+                          backgroundColor: statusInfo.bg,
+                          border: `1px solid ${alpha(statusInfo.color, 0.35)}`,
+                        }}
+                      />
+                      <Chip
+                        label={priorityChip.label}
+                        sx={{
+                          borderRadius: '999px',
+                          fontWeight: 600,
+                          color: priorityChip.color,
+                          backgroundColor: priorityChip.bg,
+                          border: `1px solid ${alpha(priorityChip.color, 0.35)}`,
+                        }}
+                      />
+                    </Stack>
+
+                    {formError && (
+                      <Typography variant="body2" color="error" sx={{ fontWeight: 600 }}>
+                        {formError}
+                      </Typography>
+                    )}
+
                     <Button
                       type="submit"
-                      variant="contained"
-                      color="primary"
                       size="large"
-                      sx={{ fontWeight: 600 }}
+                      sx={{
+                        fontWeight: 600,
+                        borderRadius: 2,
+                        px: 3,
+                        py: 1.25,
+                        backgroundImage: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        boxShadow: '0 18px 38px rgba(99, 102, 241, 0.28)',
+                        color: '#fff',
+                        '&:hover': {
+                          backgroundImage: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                          boxShadow: '0 22px 44px rgba(99, 102, 241, 0.32)',
+                        },
+                      }}
                     >
-                      Save Changes
+                      Save changes
                     </Button>
-                  </Box>
+                  </Stack>
                 </form>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12}>
-            <IssueHistory history={issue.history} />
-          </Grid>
-        </Grid>
-      </Container>
+          </Box>
+
+          <Box sx={{ width: { xs: '100%', md: '50%' }, display: 'flex' }}>
+            <Card
+              elevation={0}
+              sx={{
+                height: '100%',
+                borderRadius: 4,
+                border: `1px solid ${alpha(theme.palette.primary.main, isDark ? 0.18 : 0.12)}`,
+                background: isDark
+                  ? 'linear-gradient(150deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.85) 100%)'
+                  : 'linear-gradient(150deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.94) 100%)',
+              }}
+            >
+              <CardContent sx={{ p: { xs: 3, md: 4 }, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                  Update history
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                  A chronological record of actions taken on this issue for transparency and accountability.
+                </Typography>
+                <Box sx={{ flexGrow: 1, minHeight: 220 }}>
+                  <IssueHistory history={issue.history || []} />
+                </Box>
+              </CardContent>
+            </Card>
+          </Box>
+        </Stack>
+      </Box>
     </Box>
   );
 }

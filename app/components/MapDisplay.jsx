@@ -68,7 +68,7 @@ export default function MapDisplay({ geojson, issues, onEachWard, transparentSty
         >
           <DynamicPopup>
             <Box sx={{ minWidth: 200, fontFamily: 'system-ui' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: '#1f2937' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
                 {issue.title}
               </Typography>
               <Stack spacing={0.5}>

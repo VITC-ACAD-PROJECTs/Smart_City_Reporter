@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
@@ -10,7 +11,8 @@ import {
   Paper,
   Chip,
   Grid,
-  Skeleton
+  Skeleton,
+  useTheme
 } from '@mui/material';
 import { TrendingUp, FilterList } from '@mui/icons-material';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -19,6 +21,11 @@ import FiltersPanel from '../components/FiltersPanel';
 import PageHeader from '../components/PageHeader';
 
 export default function WardIssues() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const pageBackground = isDark
+    ? 'linear-gradient(180deg, #0f172a 0%, #111827 40%, #0f172a 100%)'
+    : 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%)';
   const { wardSlug } = useParams();
   const [issues, setIssues] = useState([]);
   const [page, setPage] = useState(1);
@@ -78,7 +85,7 @@ export default function WardIssues() {
 
   if (loading && page === 1) {
     return (
-      <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
+      <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
         <Box sx={{ 
           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
           pt: 4,
@@ -102,7 +109,7 @@ export default function WardIssues() {
 
   if (error) {
     return (
-      <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', pt: 8 }}>
+      <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', pt: 8 }}>
         <Container maxWidth="lg">
           <Card sx={{ p: 4, textAlign: 'center', borderRadius: 3 }}>
             <Typography variant="h6" color="error" gutterBottom>
@@ -123,7 +130,7 @@ export default function WardIssues() {
     .join(' ');
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh' }}>
+    <Box sx={{ bgcolor: 'transparent', minHeight: '100vh', background: pageBackground }}>
       <PageHeader
         title="CIVIC ISSUES"
         summary={{
@@ -141,9 +148,9 @@ export default function WardIssues() {
               sx={{ 
                 p: 2, 
                 textAlign: 'center',
-                border: '1px solid #e5e7eb',
+                border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : '#e5e7eb'}`,
                 borderRadius: 2,
-                bgcolor: '#fff'
+                bgcolor: 'background.paper'
               }}
             >
               <Typography variant="h4" sx={{ fontWeight: 700, color: '#667eea', mb: 0.5 }}>
@@ -160,9 +167,9 @@ export default function WardIssues() {
               sx={{ 
                 p: 2, 
                 textAlign: 'center',
-                border: '1px solid #e5e7eb',
+                border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : '#e5e7eb'}`,
                 borderRadius: 2,
-                bgcolor: '#fff'
+                bgcolor: 'background.paper'
               }}
             >
               <Typography variant="h4" sx={{ fontWeight: 700, color: '#ef4444', mb: 0.5 }}>
@@ -179,9 +186,9 @@ export default function WardIssues() {
               sx={{ 
                 p: 2, 
                 textAlign: 'center',
-                border: '1px solid #e5e7eb',
+                border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : '#e5e7eb'}`,
                 borderRadius: 2,
-                bgcolor: '#fff'
+                bgcolor: 'background.paper'
               }}
             >
               <Typography variant="h4" sx={{ fontWeight: 700, color: '#f59e0b', mb: 0.5 }}>
@@ -198,9 +205,9 @@ export default function WardIssues() {
               sx={{ 
                 p: 2, 
                 textAlign: 'center',
-                border: '1px solid #e5e7eb',
+                border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : '#e5e7eb'}`,
                 borderRadius: 2,
-                bgcolor: '#fff'
+                bgcolor: 'background.paper'
               }}
             >
               <Typography variant="h4" sx={{ fontWeight: 700, color: '#10b981', mb: 0.5 }}>
@@ -214,14 +221,11 @@ export default function WardIssues() {
         </Grid>
 
         {/* Filters Panel */}
-        <Paper 
-          elevation={0}
+        <Box 
           sx={{ 
             p: 3, 
             mb: 3,
-            border: '1px solid #e5e7eb',
             borderRadius: 2,
-            bgcolor: '#fff'
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
@@ -236,16 +240,16 @@ export default function WardIssues() {
             setStatusFilter={setStatusFilter}
             setPriorityFilter={setPriorityFilter}
           />
-        </Paper>
+        </Box>
 
         {/* Issues List */}
         {filteredIssues.length === 0 ? (
           <Card 
             elevation={0}
             sx={{ 
-              border: '1px solid #e5e7eb', 
+              border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : '#e5e7eb'}`, 
               borderRadius: 3,
-              bgcolor: '#fff'
+              bgcolor: 'background.paper'
             }}
           >
             <CardContent sx={{ p: 6, textAlign: 'center' }}>
@@ -254,7 +258,7 @@ export default function WardIssues() {
                   width: 80,
                   height: 80,
                   borderRadius: '50%',
-                  bgcolor: '#f3f4f6',
+                  bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f3f4f6',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -289,9 +293,9 @@ export default function WardIssues() {
                   textAlign: 'center', 
                   my: 3, 
                   p: 2,
-                  border: '1px solid #e5e7eb',
+                  border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.12)' : '#e5e7eb'}`,
                   borderRadius: 2,
-                  bgcolor: '#fff'
+                  bgcolor: 'background.paper'
                 }}
               >
                 <Typography variant="body2" color="text.secondary">

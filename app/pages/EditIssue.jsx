@@ -14,6 +14,7 @@ import {
   TextField,
   Typography,
   Grid,
+  useTheme,
 } from '@mui/material';
 import PageHeader from '../components/PageHeader';
 import IssueHistory from '../components/IssueHistory';
@@ -32,6 +33,11 @@ L.Icon.Default.mergeOptions({
 import { useAuth } from '../context/AuthContext';
 
 export default function EditIssue({ params }: { params: { id: string } }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const pageBackground = isDark
+    ? 'linear-gradient(180deg, #0f172a 0%, #111827 40%, #0f172a 100%)'
+    : 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%)';
   const id = params?.id;
   const router = useRouter();
   const { user } = useAuth();
@@ -112,7 +118,7 @@ export default function EditIssue({ params }: { params: { id: string } }) {
   }
 
   return (
-    <Box sx={{ bgcolor: '#f8fafc', minHeight: '100vh', py: 4 }}>
+    <Box sx={{ bgcolor: 'transparent', minHeight: '100vh', py: 4, background: pageBackground }}>
       <Container maxWidth="lg">
         <PageHeader
           title="Manage Issue"

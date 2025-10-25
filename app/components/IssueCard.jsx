@@ -9,7 +9,8 @@ import {
   Box, 
   Stack, 
   IconButton,
-  Chip 
+  Chip,
+  useTheme 
 } from '@mui/material';
 import {
   ThumbUp,
@@ -56,6 +57,8 @@ const priorityConfig = {
 
 export default function IssueCard({ issue }) {
   const { user } = useAuth();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const statusInfo = statusConfig[issue.status] || statusConfig.open;
   const priorityInfo = priorityConfig[issue.priority] || priorityConfig.medium;
@@ -184,12 +187,12 @@ export default function IssueCard({ issue }) {
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
-          border: '1px solid #e5e7eb',
-          borderRadius: 3,
+          border: `1px solid ${isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
+          borderRadius: 4,
           overflow: 'hidden',
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           position: 'relative',
-          background: '#ffffff',
+          bgcolor: 'background.paper',
           '&::before': {
             content: '""',
             position: 'absolute',
@@ -197,18 +200,18 @@ export default function IssueCard({ issue }) {
             left: 0,
             width: 4,
             height: '100%',
-            background: `linear-gradient(180deg, ${statusInfo.color}, ${statusInfo.color}80)`,
-            transform: 'scaleY(0)',
-            transformOrigin: 'bottom',
-            transition: 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+            background: statusInfo.color,
+            opacity: 0.7,
           },
           '&:hover': {
-            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.12)',
-            transform: 'translateY(-4px)',
-            borderColor: statusInfo.color,
+            boxShadow: isDark 
+              ? '0 20px 48px rgba(0, 0, 0, 0.5)' 
+              : '0 20px 48px rgba(0, 0, 0, 0.08)',
+            transform: 'translateY(-6px)',
+            borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
             '&::before': {
-              transform: 'scaleY(1)',
-              transformOrigin: 'top',
+              opacity: 1,
+              width: 5,
             },
           },
         }}
@@ -236,19 +239,17 @@ export default function IssueCard({ issue }) {
             }}
           />
         ) : imageError ? (
-          // Placeholder for failed images
           <Box
             sx={{
               width: { xs: '100%', sm: 220 },
               height: { xs: 200, sm: 'auto' },
               minHeight: { sm: 200 },
-              bgcolor: '#f3f4f6',
+              bgcolor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#f3f4f6',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#9ca3af',
+              color: 'text.secondary',
               flexShrink: 0,
-              background: 'linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%)',
             }}
           >
             <Typography variant="body2" color="inherit">
@@ -268,29 +269,26 @@ export default function IssueCard({ issue }) {
                   sx={{
                     fontWeight: 700,
                     fontSize: '1.125rem',
-                    color: '#1f2937',
+                    color: 'text.primary',
                     flex: 1,
                   }}
                 >
                   {issue.title}
                 </Typography>
                 <Chip
-                  icon={<StatusIcon sx={{ fontSize: 16 }} />}
+                  icon={<StatusIcon sx={{ fontSize: 14 }} />}
                   label={statusInfo.label}
                   size="small"
                   sx={{
                     bgcolor: statusInfo.bg,
                     color: statusInfo.color,
                     fontWeight: 600,
-                    border: `1px solid ${statusInfo.color}40`,
-                    boxShadow: `0 2px 8px ${statusInfo.color}20`,
-                    transition: 'all 0.3s ease',
+                    fontSize: '0.75rem',
+                    height: 26,
+                    border: `1.5px solid ${statusInfo.color}50`,
                     '& .MuiChip-icon': {
                       color: statusInfo.color,
-                    },
-                    '&:hover': {
-                      transform: 'scale(1.05)',
-                      boxShadow: `0 4px 12px ${statusInfo.color}30`,
+                      marginLeft: '6px',
                     },
                   }}
                 />
@@ -324,19 +322,18 @@ export default function IssueCard({ issue }) {
             >
               {/* Priority */}
               <Chip
-                label={`${issue.priority?.toUpperCase() || 'MEDIUM'} Priority`}
+                label={issue.priority?.charAt(0).toUpperCase() + issue.priority?.slice(1) || 'Medium'}
                 size="small"
                 sx={{
-                  height: 24,
-                  fontSize: '0.75rem',
+                  height: 22,
+                  fontSize: '0.7rem',
                   fontWeight: 600,
                   bgcolor: priorityInfo.bg,
                   color: priorityInfo.color,
-                  border: `1px solid ${priorityInfo.color}40`,
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'translateY(-1px)',
-                    boxShadow: `0 2px 8px ${priorityInfo.color}25`,
+                  border: `1px solid ${priorityInfo.color}50`,
+                  borderRadius: 1.5,
+                  '& .MuiChip-label': {
+                    px: 1.5,
                   },
                 }}
               />
@@ -344,7 +341,7 @@ export default function IssueCard({ issue }) {
               {/* Location */}
               {(issue.ward || issue.wardName || (issue.lat && issue.lng)) && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <LocationOn sx={{ fontSize: 16, color: '#6b7280' }} />
+                  <LocationOn sx={{ fontSize: 16, color: 'text.secondary' }} />
                   <Typography variant="caption" color="text.secondary">
                     {issue.ward || issue.wardName || `${issue.lat?.toFixed(4)}, ${issue.lng?.toFixed(4)}`}
                   </Typography>
@@ -354,7 +351,7 @@ export default function IssueCard({ issue }) {
               {/* Date */}
               {issue.createdAt && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <AccessTime sx={{ fontSize: 16, color: '#6b7280' }} />
+                  <AccessTime sx={{ fontSize: 16, color: 'text.secondary' }} />
                   <Typography variant="caption" color="text.secondary">
                     {formatDate(issue.createdAt)}
                   </Typography>
@@ -363,37 +360,56 @@ export default function IssueCard({ issue }) {
             </Stack>
 
             {/* Upvote Section */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 1 }}>
-              <IconButton
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pt: 1 }}>
+              <Box
                 onClick={(e) => {
                   e.preventDefault();
-                  handleUpvote();
+                  if (user && !isUpvoting) handleUpvote();
                 }}
-                disabled={isUpvoting || !user}
-                size="small"
                 sx={{
-                  color: isUpvoted ? '#2563eb' : '#9ca3af',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    bgcolor: isUpvoted ? '#e6f0ff' : '#f3f4f6',
-                    transform: 'scale(1.1)',
-                  },
-                  '&:disabled': {
-                    color: '#9ca3af',
-                  },
-                  '&:active': {
-                    transform: 'scale(0.95)',
-                  },
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 1.5,
+                  py: 0.75,
+                  borderRadius: 2,
+                  bgcolor: isUpvoted 
+                    ? isDark ? 'rgba(37, 99, 235, 0.2)' : 'rgba(37, 99, 235, 0.08)'
+                    : isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)',
+                  border: `1px solid ${isUpvoted 
+                    ? isDark ? 'rgba(37, 99, 235, 0.3)' : 'rgba(37, 99, 235, 0.2)'
+                    : isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)'}`,
+                  transition: 'all 0.2s ease',
+                  cursor: user ? 'pointer' : 'not-allowed',
+                  opacity: !user || isUpvoting ? 0.6 : 1,
+                  '&:hover': user && !isUpvoting ? {
+                    bgcolor: isUpvoted
+                      ? isDark ? 'rgba(37, 99, 235, 0.25)' : 'rgba(37, 99, 235, 0.12)'
+                      : isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: isDark ? '0 4px 12px rgba(0, 0, 0, 0.3)' : '0 4px 12px rgba(0, 0, 0, 0.08)',
+                  } : {},
                 }}
               >
-                <ThumbUp sx={{ fontSize: 18 }} />
-              </IconButton>
-              <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                {upvotes} {upvotes === 1 ? 'upvote' : 'upvotes'}
-              </Typography>
+                <ThumbUp sx={{ 
+                  fontSize: 16,
+                  color: isUpvoted ? '#2563eb' : 'text.secondary',
+                  transition: 'all 0.2s ease',
+                }} />
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    color: isUpvoted ? '#2563eb' : 'text.primary',
+                  }}
+                >
+                  {upvotes}
+                </Typography>
+              </Box>
               {!user && (
-                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                  (Login to upvote)
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
+                  Login to upvote
                 </Typography>
               )}
             </Box>

@@ -22,16 +22,30 @@ import { CloudUpload, LocationOn, Send, CheckCircle, Image as ImageIcon } from '
 import PageHeader from '../components/PageHeader';
 import dynamic from 'next/dynamic';
 import { apiFetch } from '@/lib/api';
+import { useTheme, alpha } from '@mui/material/styles';
 
 const DynamicUploadMap = dynamic(() => import('@/app/components/UploadMap'), { ssr: false });
 
 const priorities = [
-  { value: 'low', label: 'Low', color: '#10b981' },
-  { value: 'medium', label: 'Medium', color: '#f59e0b' },
-  { value: 'high', label: 'High', color: '#ef4444' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
 ];
 
 export default function UploadView() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+  const borderColor = theme.palette.divider;
+  const surfaceBg = theme.palette.background.paper;
+  const priorityColors = {
+    low: theme.palette.success.main,
+    medium: theme.palette.warning.main,
+    high: theme.palette.error.main,
+  };
+  const pageBackground = isDark
+    ? 'linear-gradient(180deg, #0f172a 0%, #111827 40%, #0f172a 100%)'
+    : 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%)';
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -200,7 +214,7 @@ export default function UploadView() {
   const canProceedStep2 = formData.photo !== null;
 
   return (
-    <Box sx={{ minHeight: '100vh' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'transparent', background: pageBackground }}>
       <PageHeader
         title="Report Issue"
         summary={{ 
@@ -216,9 +230,9 @@ export default function UploadView() {
             p: { xs: 2, sm: 3, md: 4 }, 
             maxWidth: 900, 
             mx: 'auto',
-            border: '1px solid #e5e7eb',
+            border: `1px solid ${borderColor}`,
             borderRadius: 3,
-            bgcolor: '#fff'
+            bgcolor: surfaceBg
           }}
         >
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
@@ -231,7 +245,7 @@ export default function UploadView() {
 
           {success ? (
             <Box sx={{ textAlign: 'center', py: 6 }}>
-              <CheckCircle sx={{ fontSize: 80, color: '#10b981', mb: 2 }} />
+              <CheckCircle sx={{ fontSize: 80, color: theme.palette.success.main, mb: 2 }} />
               <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
                 Issue Reported Successfully!
               </Typography>
@@ -266,7 +280,7 @@ export default function UploadView() {
                       {priorities.map(p => (
                         <MenuItem key={p.value} value={p.value}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: p.color }} />
+                            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: priorityColors[p.value] }} />
                             {p.label}
                           </Box>
                         </MenuItem>
@@ -303,9 +317,9 @@ export default function UploadView() {
                     </Alert>
                   )}
                   
-                  <Paper variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 2 }}>
+                  <Paper variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 2, borderColor, bgcolor: surfaceBg }}>
                     <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                      <ImageIcon sx={{ color: '#667eea' }} />
+                      <ImageIcon sx={{ color: theme.palette.primary.main }} />
                       <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Upload Photo</Typography>
                       {locationFromExif && (
                         <Chip 
@@ -331,12 +345,12 @@ export default function UploadView() {
                       </Box>
                     )}
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
-                      💡 Tip: If your photo has GPS data (geotag), we'll automatically detect and use that location!
+                      💡 Tip: If your photo has GPS data (geotag), we’ll automatically detect and use that location!
                     </Typography>
                   </Paper>
-                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+                  <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, borderColor, bgcolor: surfaceBg }}>
                     <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-                      <LocationOn sx={{ color: '#ef4444' }} />
+                      <LocationOn sx={{ color: theme.palette.error.main }} />
                       <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Select or Verify Location</Typography>
                     </Stack>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
@@ -344,7 +358,7 @@ export default function UploadView() {
                         ? 'Location detected from photo. You can adjust it by clicking on the map or dragging the marker.'
                         : 'Click on the map to set location, or drag the marker'}
                     </Typography>
-                    <Box sx={{ height: 350, borderRadius: 2, overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                    <Box sx={{ height: 350, borderRadius: 2, overflow: 'hidden', border: `1px solid ${borderColor}` }}>
                       <DynamicUploadMap mapCenter={mapCenter} markerPosition={markerPosition} setMarkerPosition={setMarkerPosition} setMap={setMap} />
                     </Box>
                     {markerPosition && (
@@ -365,24 +379,27 @@ export default function UploadView() {
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 700, mb: 3 }}>Review Your Submission</Typography>
                   <Stack spacing={2}>
-                    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+                    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, borderColor, bgcolor: surfaceBg }}>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>Issue Title</Typography>
                       <Typography variant="body1" sx={{ fontWeight: 600 }}>{formData.title}</Typography>
                     </Paper>
-                    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+                    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, borderColor, bgcolor: surfaceBg }}>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>Description</Typography>
                       <Typography variant="body2">{formData.description}</Typography>
                     </Paper>
-                    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+                    <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, borderColor, bgcolor: surfaceBg }}>
                       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>Priority</Typography>
-                      <Chip label={priorities.find(p => p.value === formData.priority)?.label} sx={{
-                        bgcolor: priorities.find(p => p.value === formData.priority)?.color + '20',
-                        color: priorities.find(p => p.value === formData.priority)?.color,
-                        fontWeight: 600,
-                      }}/>
+                      <Chip
+                        label={priorities.find(p => p.value === formData.priority)?.label}
+                        sx={{
+                          bgcolor: alpha(priorityColors[formData.priority], 0.18),
+                          color: priorityColors[formData.priority],
+                          fontWeight: 600,
+                        }}
+                      />
                     </Paper>
                     {formData.photo && (
-                      <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+                      <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, borderColor, bgcolor: surfaceBg }}>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>Photo Preview</Typography>
                         <Box sx={{ width: '100%', height: 200, borderRadius: 2, overflow: 'hidden' }}>
                           <img src={formData.photo} alt="Issue" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -390,7 +407,7 @@ export default function UploadView() {
                       </Paper>
                     )}
                     {markerPosition && (
-                      <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2 }}>
+                      <Paper variant="outlined" sx={{ p: 2.5, borderRadius: 2, borderColor, bgcolor: surfaceBg }}>
                         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>Location Selected</Typography>
                         <Chip icon={<LocationOn />} label={`${markerPosition.lat.toFixed(6)}, ${markerPosition.lng.toFixed(6)}`} color="error" variant="outlined"/>
                       </Paper>
