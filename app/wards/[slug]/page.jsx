@@ -257,6 +257,149 @@ export default function WardIssues() {
     });
   }, [filteredIssues]);
 
+  const formatLocation = issue => {
+    if (!issue || typeof issue !== 'object') {
+      return 'Location unavailable';
+    }
+
+    const extractString = (value, visited = new Set()) => {
+      if (!value || visited.has(value)) {
+        return null;
+      }
+
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (!trimmed.length) return null;
+        const lower = trimmed.toLowerCase();
+        if (lower === 'unknown' || lower === 'n/a' || lower === 'null' || lower === 'undefined') {
+          return null;
+        }
+        return trimmed;
+      }
+
+      if (Array.isArray(value)) {
+        const parts = value
+          .map(part => extractString(part, visited))
+          .filter(Boolean);
+        return parts.length ? parts.join(', ') : null;
+      }
+
+      if (typeof value === 'object') {
+        visited.add(value);
+        const candidateKeys = [
+          'formatted',
+          'formattedAddress',
+          'name',
+          'label',
+          'displayName',
+          'description',
+          'text',
+          'street',
+          'address',
+          'address1',
+          'addressLine',
+          'addressLine1',
+          'addressLine2',
+          'title',
+        ];
+
+        for (const key of candidateKeys) {
+          if (value[key]) {
+            const extracted = extractString(value[key], visited);
+            if (extracted) {
+              return extracted;
+            }
+          }
+        }
+
+        for (const key of Object.keys(value)) {
+          if (!candidateKeys.includes(key)) {
+            const extracted = extractString(value[key], visited);
+            if (extracted) {
+              return extracted;
+            }
+          }
+        }
+      }
+
+      return null;
+    };
+
+    const locationCandidates = [
+      issue.location,
+      issue.address,
+      issue.landmark,
+      issue.street,
+      issue.neighborhood,
+      issue.neighbourhood,
+      issue.area,
+      issue.region,
+      issue.city,
+      issue.town,
+      issue.village,
+      issue.ward,
+      issue.wardName,
+      issue?.ward?.name,
+      issue?.ward?.label,
+      issue?.ward?.displayName,
+      issue?.address?.formatted,
+      issue?.address?.formattedAddress,
+      issue?.address?.name,
+      issue?.address?.street,
+      issue?.location?.description,
+      issue?.location?.name,
+      issue?.location?.label,
+      issue?.location?.formatted,
+      issue?.location?.full,
+      issue?.locationDetails,
+      issue?.coordinates,
+      issue?.geo,
+      issue?.position,
+    ];
+
+    for (const candidate of locationCandidates) {
+      const result = extractString(candidate);
+      if (result) {
+        return result;
+      }
+    }
+
+    const resolveCoordinate = value => {
+      if (typeof value === 'number' && Number.isFinite(value)) return value;
+      if (typeof value === 'string') {
+        const numeric = Number.parseFloat(value);
+        return Number.isFinite(numeric) ? numeric : null;
+      }
+      return null;
+    };
+
+    let lat = resolveCoordinate(issue.lat);
+    let lng = resolveCoordinate(issue.lng);
+
+    if ((lat == null || lng == null) && issue?.geo) {
+      lat = lat ?? resolveCoordinate(issue?.geo?.lat || issue?.geo?.latitude);
+      lng = lng ?? resolveCoordinate(issue?.geo?.lng || issue?.geo?.lon || issue?.geo?.longitude);
+    }
+
+    if ((lat == null || lng == null) && issue?.coordinates) {
+      lat = lat ?? resolveCoordinate(issue?.coordinates?.lat || issue?.coordinates?.[0]);
+      lng = lng ?? resolveCoordinate(issue?.coordinates?.lng || issue?.coordinates?.lon || issue?.coordinates?.longitude || issue?.coordinates?.[1]);
+    }
+
+    if ((lat == null || lng == null) && issue?.location) {
+      lat = lat ?? resolveCoordinate(issue?.location?.lat || issue?.location?.latitude);
+      lng = lng ?? resolveCoordinate(issue?.location?.lng || issue?.location?.lon || issue?.location?.longitude);
+    }
+
+    if (lat != null && lng != null) {
+      const latText = Number.isFinite(lat) ? lat.toFixed(4) : lat;
+      const lngText = Number.isFinite(lng) ? lng.toFixed(4) : lng;
+      return `${latText}, ${lngText}`;
+    }
+
+    return 'Location unavailable';
+  };
+
   const spotlightIssues = useMemo(() => {
     const cloned = [...filteredIssues];
 
@@ -731,12 +874,7 @@ export default function WardIssues() {
                         issue?.issueTitle ||
                         issue?.heading ||
                         (issue?.description ? `${issue.description.slice(0, 48)}${issue.description.length > 48 ? '…' : ''}` : 'Untitled issue');
-                      const location =
-                        issue?.location ||
-                        issue?.address ||
-                        issue?.landmark ||
-                        issue?.street ||
-                        'Location unavailable';
+                      const location = formatLocation(issue);
 
                       return (
                         <Box key={issue?._id || issue?.id || index} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
