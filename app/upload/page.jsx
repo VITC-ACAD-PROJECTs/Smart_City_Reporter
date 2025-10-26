@@ -22,6 +22,7 @@ import { CloudUpload, LocationOn, Send, CheckCircle, Image as ImageIcon } from '
 import PageHeader from '../components/PageHeader';
 import dynamic from 'next/dynamic';
 import { apiFetch } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 import { useTheme, alpha } from '@mui/material/styles';
 
 const DynamicUploadMap = dynamic(() => import('@/app/components/UploadMap'), { ssr: false });
@@ -63,6 +64,7 @@ export default function UploadView() {
   const [locationFromExif, setLocationFromExif] = useState(false);
   const [showLocationAlert, setShowLocationAlert] = useState(false);
   const [map, setMap] = useState(null);
+  const { user, login } = useAuth();
 
   const steps = ['Issue Details', 'Location & Photo', 'Review & Submit'];
 
@@ -144,6 +146,11 @@ export default function UploadView() {
     e.preventDefault();
     setError('');
 
+    if (!user || !user.token) {
+      setError('You must be logged in to submit an issue.');
+      return;
+    }
+
     if (!formData.title || formData.title.trim().length < 3) {
       setError('Title must be at least 3 characters long.');
       return;
@@ -181,7 +188,10 @@ export default function UploadView() {
 
       const response = await apiFetch('/api/issues', {
         method: 'POST',
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
       });
 
       if (!response.ok) {
@@ -212,6 +222,55 @@ export default function UploadView() {
 
   const canProceedStep1 = formData.title.trim().length >= 3 && formData.description && formData.priority;
   const canProceedStep2 = formData.photo !== null;
+
+  if (!user) {
+    return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'transparent', background: pageBackground }}>
+        <PageHeader
+          title="Report Issue"
+          summary={{
+            titleText: 'Please sign in',
+            subText: 'Log in with your Google account to report civic issues.',
+          }}
+        />
+        <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, mt: 4, pb: 6 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: { xs: 3, md: 5 },
+              maxWidth: 720,
+              mx: 'auto',
+              textAlign: 'center',
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 3,
+              bgcolor: theme.palette.background.paper,
+            }}
+          >
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 2 }}>
+              Sign in required
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+              You need to be logged in to create a new issue. Please sign in to continue.
+            </Typography>
+            <Button
+              variant="contained"
+              onClick={login}
+              sx={{
+                px: 4,
+                py: 1.25,
+                borderRadius: 2,
+                fontWeight: 600,
+                backgroundImage: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                boxShadow: '0 12px 28px rgba(99, 102, 241, 0.22)',
+              }}
+            >
+              Sign in with Google
+            </Button>
+          </Paper>
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'transparent', background: pageBackground }}>

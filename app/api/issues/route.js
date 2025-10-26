@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { ObjectId } from 'mongodb';
 import { connectToDatabase } from '@/lib/mongodb';
-import { requireApiKey, validate, IssueCreateSchema } from '@/lib/api-utils';
+import { requireApiKey, validate, IssueCreateSchema, authenticateUser } from '@/lib/api-utils';
 import { locateWard } from '@/lib/locator';
 
 export async function GET(request) {
@@ -46,6 +46,9 @@ export async function POST(request) {
   const apiKeyError = await requireApiKey(request);
   if (apiKeyError) return apiKeyError;
 
+  const authError = await authenticateUser(request);
+  if (authError) return authError;
+
   try {
     const { db } = await connectToDatabase();
     const body = await request.json();
@@ -59,7 +62,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid payload', details }, { status: 400 });
     }
     
-    const { title, description, category, lat, lng, photo, userId, priority } = body;
+    const { title, description, category, lat, lng, photo, priority } = body;
 
     let wardInfo = null;
     if (typeof lat === 'number' && typeof lng === 'number') {
@@ -95,7 +98,9 @@ export async function POST(request) {
       status: 'open',
       assignedTo: null,
       history: [{ status: 'open', timestamp: now }],
-      userId: userId || null,
+      userId: request.user?.id || null,
+      reporterEmail: request.user?.email || null,
+      reporterName: request.user?.name || null,
       comments: [],
       flags: [],
       feedback: null

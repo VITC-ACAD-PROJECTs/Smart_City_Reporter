@@ -34,7 +34,7 @@ export default function EditIssue() {
     : 'linear-gradient(180deg, #f8fafc 0%, #eef2ff 35%, #f8fafc 100%)';
   const { id } = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const [issue, setIssue] = useState(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState('');
@@ -44,8 +44,10 @@ export default function EditIssue() {
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
-    if (user) {
+    if (user?.email) {
       setAssignedTo(user.email);
+    } else {
+      setAssignedTo('');
     }
   }, [user]);
 
@@ -61,8 +63,7 @@ export default function EditIssue() {
       .then((data) => {
         setIssue(data);
         setStatus(data.status);
-        // Keep the assignedTo from the database if it exists, otherwise use the current user's email
-        setAssignedTo(data.assignedTo || (user ? user.email : ''));
+        setAssignedTo(user?.email || '');
         setLoading(false);
       })
       .catch((err) => {
@@ -75,6 +76,11 @@ export default function EditIssue() {
     e.preventDefault();
     setFormError('');
 
+    if (!user || !user.token) {
+      setFormError('You must be logged in to update an issue.');
+      return;
+    }
+
     if (!statusChangeReason) {
       setFormError('Status change reason is required.');
       return;
@@ -84,10 +90,13 @@ export default function EditIssue() {
       return;
     }
     try {
-      const body = { status, assignedTo, statusChangeReason };
+      const body = { status, assignedTo: user.email, statusChangeReason };
       const res = await apiFetch(`/api/issues/${id}/status`, {
         method: 'POST',
         body: JSON.stringify(body),
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
       });
       if (!res.ok) {
         const errorData = await res.json();
@@ -245,6 +254,61 @@ export default function EditIssue() {
                 }}
               >
                 Back to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (!user) {
+    return (
+      <Box sx={{ minHeight: '100vh', py: 4, bgcolor: 'transparent', background: pageBackground }}>
+        <PageHeader
+          title="Manage Issue"
+          summary={{
+            titleText: 'Sign in required',
+            subText: 'Log in to make changes to this issue.',
+          }}
+        />
+        <Box sx={{ px: { xs: 2, sm: 3, md: 5 }, mt: 4, maxWidth: 720, mx: 'auto', width: '100%' }}>
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 4,
+              border: `1px solid ${alpha(theme.palette.primary.main, isDark ? 0.25 : 0.14)}`,
+              background: isDark
+                ? 'linear-gradient(150deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.85) 100%)'
+                : 'linear-gradient(150deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.94) 100%)',
+              textAlign: 'center',
+            }}
+          >
+            <CardContent sx={{ p: { xs: 3, md: 5 } }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                Authentication required
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+                Please sign in with your Google account to update this issue.
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={login}
+                sx={{
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  px: 3,
+                  py: 1.25,
+                  backgroundImage: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  boxShadow: '0 18px 38px rgba(99, 102, 241, 0.28)',
+                  color: '#fff',
+                  '&:hover': {
+                    backgroundImage: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                    boxShadow: '0 22px 44px rgba(99, 102, 241, 0.32)',
+                  },
+                }}
+              >
+                Sign in with Google
               </Button>
             </CardContent>
           </Card>
