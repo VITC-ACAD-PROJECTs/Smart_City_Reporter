@@ -1,2 +1,1 @@
-# CN_PROJ_PRAJ
-
+CN PROJECT
